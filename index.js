@@ -1,2 +1,2 @@
 require('img-load')();
-require('./build.js');
+module.exports = require('./build.js');
