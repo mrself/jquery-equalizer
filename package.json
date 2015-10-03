@@ -1,6 +1,6 @@
 {
   "name": "equalizer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "index.js",
   "directories": {
@@ -18,9 +18,11 @@
     "gulp-uglify": "^1.4.1",
     "gulp-util": "^3.0.6",
     "gulp-watch": "^4.3.5",
-    "img-load": "git+https://github.com/mrself/jquery-img-load.git#v1.0.0",
     "pretty-hrtime": "^1.0.0",
     "vinyl-source-stream": "^1.1.0",
     "watchify": "^3.4.0"
+  },
+  "dependencies": {
+    "img-load": "git+https://github.com/mrself/jquery-img-load.git#v1.0.0"
   }
 }
