@@ -159,7 +159,7 @@ describe('#_defineTarget', function() {
 	});
 });
 
-describe.only('#_isAllowedWidth', function() {
+describe('#_isAllowedWidth', function() {
 	it('if window width is smaller than max breakpoint and bigger than min, return true', function() {
 		var context = {
 			$window: {
