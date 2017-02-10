@@ -31,8 +31,8 @@ Plugin.prototype = {
 	defaults: {
 		target: '.js-equalize-target',
 		breakpoint: {
-			max: 0,
-			min: 0
+			max: false,
+			min: false
 		},
 		onImgLoad: false,
 		byMaxHeight: true,
@@ -66,7 +66,11 @@ Plugin.prototype = {
 	 */
 	_isAllowedWidth: function() {
 		var windowWidth = this.$window.width();
-		return windowWidth >= this.options.breakpoint.min && windowWidth <= this.options.breakpoint.max;
+		if (this.options.breakpoint.min !== false && windowWidth <= this.options.breakpoint.min)
+			return false;
+		if (this.options.breakpoint.max !== false && windowWidth >= this.options.breakpoint.max)
+			return false;
+		return true;
 	},
 
 	onImgLoad: function(callback) {

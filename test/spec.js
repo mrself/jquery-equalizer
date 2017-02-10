@@ -159,7 +159,7 @@ describe('#_defineTarget', function() {
 	});
 });
 
-describe('#_isAllowedWidth', function() {
+describe.only('#_isAllowedWidth', function() {
 	it('if window width is smaller than max breakpoint and bigger than min, return true', function() {
 		var context = {
 			$window: {
@@ -171,6 +171,96 @@ describe('#_isAllowedWidth', function() {
 				breakpoint: {
 					min: 400,
 					max: 600
+				}
+			}
+		};
+		var actual = proto._isAllowedWidth.call(context);
+		expect(actual).to.eql(true);
+	});
+
+	it('if min breakpoint is false, do not use it', function() {
+		var context = {
+			$window: {
+				width: function() {
+					return 500
+				}
+			},
+			options: {
+				breakpoint: {
+					min: false,
+					max: 600
+				}
+			}
+		};
+		var actual = proto._isAllowedWidth.call(context);
+		expect(actual).to.eql(true);
+	});
+
+	it('if max breakpoint is false, do not use it', function() {
+		var context = {
+			$window: {
+				width: function() {
+					return 500
+				}
+			},
+			options: {
+				breakpoint: {
+					min: 400,
+					max: false
+				}
+			}
+		};
+		var actual = proto._isAllowedWidth.call(context);
+		expect(actual).to.eql(true);
+	});
+
+	it('if one min breakpoint options does not fit, return false', function() {
+		var context = {
+			$window: {
+				width: function() {
+					return 500
+				}
+			},
+			options: {
+				breakpoint: {
+					min: 550,
+					max: 600
+				}
+			}
+		};
+		var actual = proto._isAllowedWidth.call(context);
+		expect(actual).to.eql(false);
+	});
+
+	it('if max breakpoint options do not fit, return false', function() {
+		var context = {
+			$window: {
+				width: function() {
+					return 800
+				}
+			},
+			options: {
+				breakpoint: {
+					min: 500,
+					max: 600
+				}
+			}
+		};
+		var actual = proto._isAllowedWidth.call(context);
+		expect(actual).to.eql(false);
+	});
+
+	it('if breakpoint options are false, return true', function() {
+		var context = {
+			$window: {
+				width: function() {
+					return 800
+				}
+			},
+			options: {
+				breakpoint: {
+					min: false,
+					max: false
 				}
 			}
 		};
