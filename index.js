@@ -1,15 +1,39 @@
 require('img-load')();
 
 function Plugin() {
-	
+	/**
+	 * Height which is used for comparing
+	 * @type {number}
+	 */
+	this._extremeHeight = undefined;
+
+	/**
+	 * Window object
+	 * @type {jQuery}
+	 */
+	this.$window = undefined;
+
+	/**
+	 * Elements to equalize
+	 * @type {jQuery}
+	 */
+	this.$target = undefined;
+
+	/**
+	 * Main element
+	 * @type {jQuery}
+	 */
+	this.$el = undefined;
 }
 
 Plugin.prototype = {
 	constructor: Plugin,
 	defaults: {
-		equalSelector: '.js-equalizer-col',
-		minWidth: 0,
-		maxWidth: 0,
+		target: '.js-equalize-col',
+		breakpoint: {
+			max: 0,
+			min: 0
+		},
 		onImgLoad: false,
 		byMaxHeight: true,
 		callback: function() {}
@@ -17,19 +41,32 @@ Plugin.prototype = {
 
 	init: function() {
 		this._resolveOptions();
+		this._setDataOptions();
+		this._defineExtremeHeight();
+		this._defineTarget();
 		this.$window = $(window);
 		this.$window.on('resize', this.run.bind(this));
 		this.run();
 	},
 
 	run: function() {
-		var self = this;
-		var windowWidth = this.$window.width();
-		if (windowWidth <= this.options.minWidth && windowWidth >= this.options.maxWidth)
+		this.reset();
+		if (!this._isAllowedWidth())
 			return;
-		this.onImgLoad(function() {
-			self.equalize();
-		});
+		this.onImgLoad(this.equalize.bind(this));
+	},
+
+	reset: function() {
+		this.$target.css('height', null);
+	},
+
+	/**
+	 * If to run the plugin for the current window width
+	 * @return {Boolean}
+	 */
+	_isAllowedWidth: function() {
+		var windowWidth = this.$window.width();
+		return windowWidth >= this.options.breakpoint.min && windowWidth <= this.options.breakpoint.max;
 	},
 
 	onImgLoad: function(callback) {
@@ -44,37 +81,42 @@ Plugin.prototype = {
 		}
 	},
 
-	_setExtremeHeight: function() {
-		
+	_defineExtremeHeight: function() {
+		this._extremeHeight = this.options.byMaxHeight ? 0 : 100000;
+	},
+
+	_defineTarget: function() {
+		this.$target = this.options.target instanceof $ ? 
+			this.options.target : this.$el.find(this.options.target);
 	},
 
 	_getHeights: function() {
-		return this.$col.css('height', '').map(function() {
+		return this.$target.map(function() {
 			return $(this).outerHeight();
 		}).get();
 	},
 
 	equalize: function() {
-		this._setExtremeHeight();
 		var heights = this._getHeights();
-		this.$col.outerHeight(this._defineHeight(heights));
+		this.$target.outerHeight(this._defineHeight(heights));
 		this.options.callback();
 	},
 
 	_defineHeight: function(heights) {
-		heights.push(this.extremeHeight);
+		heights.push(this._extremeHeight);
 		return this.options.byMaxHeight ? Math.max.apply(null, heights) : Math.min.apply(null, heights);
 	},
 
 	_resolveOptions: function() {
 		this.$el = this.options.$el;
-		this.$col = this.options.col instanceof $ ? 
-			this.options.col : this.$el.find(this.options.col);
-		this.extremeHeight = this.options.byMaxHeight ? 0 : 100000;
+	},
+
+	_setDataOptions: function() {
+		this.setOptions(this.$el.data(Plugin._name));
 	},
 
 	setOptions: function(options) {
-		this.options = $.extend(true, {}, this.defaults, options);
+		this.options = $.extend(true, {}, this.defaults, this.options, options);
 		if (!this.options.$el)
 			throw new Error('$el must be set in options');
 	},
@@ -82,6 +124,7 @@ Plugin.prototype = {
 };
 
 Plugin.options = {
+	// Selector which will be used by plugin as default for target at init
 	autoSelector: '.js-equalize-auto',
 	pluginName: 'equalize'
 };
@@ -98,21 +141,32 @@ Plugin.init = function(options) {
 Plugin.boot = function() {
 	this.setJqueryProps();
 	$(this.options.autoSelector).each(function() {
-		var $this = $(this);
-		var options = $this.data(Plugin._name);
-		$this[Plugin.options.pluginName](options);
+		$(this)[Plugin.options.pluginName]();
 	});
 	return this;
 };
 
 Plugin.setJqueryProps = function() {
-	$.equalize = this;
-	$.fn[Plugin.options.pluginName] = function(options) {
-		var constructor = Plugin.jqueryConstructor.bind(Plugin, options);
-		return this.each(constructor);
-	};
+	$.equalize = Plugin;
+	$.fn[Plugin.options.pluginName] = Plugin.jqueryInit;
 };
 
+/**
+ * JQuery plugin entry
+ * @param  {Object} options 
+ * @return {jQuery} jquery instance
+ */
+Plugin.jqueryInit = function(options) {
+	var constructor = Plugin.jqueryConstructor.bind(Plugin, options);
+	return this.each(constructor);
+};
+
+/**
+ * JQuery constuctor
+ * @param  {Object} options Options
+ * @param  {number} index   Element index
+ * @param  {HTMLElement} el Html element
+ */
 Plugin.jqueryConstructor = function(options, index, el) {
 	var inst = Plugin.instance(el);
 	if (inst) inst.run();
@@ -133,6 +187,12 @@ Plugin.instance = function(el, inst) {
 	else return $.data(el, dataName);
 };
 
+/**
+ * Make options copy and set $el property
+ * @param  {jQuery} $el     
+ * @param  {Object} options Original options
+ * @return {Object}         Resolved options
+ */
 Plugin.resolveOptions = function($el, options) {
 	options = $.extend(true, {}, options);
 	options.$el = $el;
@@ -140,4 +200,4 @@ Plugin.resolveOptions = function($el, options) {
 };
 
 
-module.exports = Plugin.boot.bind(Plugin);
+module.exports = Plugin;

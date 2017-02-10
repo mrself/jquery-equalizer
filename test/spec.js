@@ -12,22 +12,27 @@ chai.use(sinonChai);
 
 require('jsdom-global')();
 global.$ = global.jQuery = require('jquery');
-var PluginBooter = require('../index');
-var Plugin = PluginBooter();
+var Plugin = require('../index');
+Plugin.boot();
 Plugin._name = 'plugin';
+var proto = Plugin.prototype;
 
 var $el;
+var $target;
 var heights;
 var sn;
 beforeEach(function() {
 	$el = $('<div>');
 	heights = [];
+	$target = $([]);
 	for (var i = 0; i < 10; i++) {
 		var height = Math.floor((Math.random() * 900) + 1);
 		heights.push(height);
-		$el.append($('<div>', {
-			height: height
-		}));
+		var $targetSingle = $('<div>', {
+			'class': 'js-equalize-col'
+		}).outerHeight(height);
+		$el.append($targetSingle);
+		$target = $target.add($targetSingle);
 	}
 });
 beforeEach(function() {
@@ -37,55 +42,152 @@ afterEach(function() {
 	sn.restore();
 });
 
-describe('.jqueryConstructor', function() {
-	it('if instance does not exist, call .init', function() {
-		// sn.stub(Plugin, 'resolveOptions');
-		// sn.stub(Plugin, 'init');
-		// var instance = sn.stub(Plugin, 'instance').returns(undefined);
-		// var el = $('<div>')[0];
-		// Plugin.jqueryConstructor({}, 0, el);
-		// expect(instance).to.have.been.called;
-		
-		// sn.stub(Plugin, 'resolveOptions');
-		// sn.stub(Plugin, 'init');
-		var init = sn.stub(Plugin, 'init');
-		var el = $('<div>')[0];
-		Plugin.jqueryConstructor({}, 0, el);
-		expect(init).to.have.been.calledWith({
-			$el: $(el)
-		});
-	});
-
-	it('if instance exists, call #run', function() {
-		sn.stub(Plugin, 'resolveOptions');
-		sn.stub(Plugin, 'instance').returns(new Plugin);
-		sn.stub(Plugin, 'init');
-		var run = sn.stub(Plugin.prototype, 'run');
-		var el = $('<div>')[0];
-		Plugin.jqueryConstructor({}, 0, el);
-		expect(run).to.have.been.called;
-	});
-});
-
 describe('.instance', function() {
-	it('if arguments is 2 length, bind instance to element', function() {
-		var el = $('<div>')[0];
-		var inst = new Plugin;
-		Plugin.instance(el, inst);
-		expect($.data(el, 'plugin_instance')).to.eql(inst);
-	});
+	describe('arguments length', function() {
+		it('if 1, get instance', function() {
+			var inst = new Plugin;
+			$.data($el[0], 'plugin_instance', inst);
+			expect(Plugin.instance($el[0])).to.eql(inst);
+		});
 
-	it('if arguments is 1 length, get instance from element', function() {
-		var el = $('<div>')[0];
-		var inst = new Plugin;
-		$.data(el, 'plugin_instance', inst);
-		var expected = Plugin.instance(el);
-		expect(expected).to.eql(inst);
+		it('if 2, set instance', function() {
+			var inst = new Plugin;
+			Plugin.instance($el[0], inst)
+			expect(Plugin.instance($el[0])).to.eql(inst);
+		});
 	});
 });
 
 describe('.resolveOptions', function() {
-	it('clone existing options', function() {
-		
+	it('has $el property', function() {
+		var options = Plugin.resolveOptions($el, {});
+		expect(options).to.eql({$el: $el});
+	});
+
+	it('clone original options', function() {
+		var original = {prop: 'key'};
+		var options = Plugin.resolveOptions($el, original);
+		original.prop = 'key2';
+		expect(options.prop).to.eql('key');
+	});
+});
+
+describe('#defineHeight', function() {
+	describe('case: options.byMaxHeight', function() {
+		it('true: return max value', function() {
+			var heights = [1, 2, 3];
+			var context = {
+				_extremeHeight: 1,
+				options: {
+					byMaxHeight: true
+				}
+			};
+			var actual = proto._defineHeight.call(context, heights);
+			expect(actual).to.eql(3);
+		});
+
+		it('false: return min value', function() {
+			var heights = [1, 2, 3];
+			var context = {
+				_extremeHeight: 1,
+				options: {
+					byMaxHeight: false
+				}
+			};
+			var actual = Plugin.prototype._defineHeight.call(context, heights);
+			expect(actual).to.eql(1);
+		});
+	});
+
+	it('include _extremeHeight property in calculations', function() {
+		var heights = [1, 2, 3];
+		var context = {
+			_extremeHeight: 0,
+			options: {
+				byMaxHeight: false
+			}
+		};
+		var actual = Plugin.prototype._defineHeight.call(context, heights);
+		expect(actual).to.eql(0);
+	});
+});
+
+describe('#_getHeights', function() {
+	it('return columns heights', function() {
+		var context = {
+			$target: $target
+		};
+		var actual = proto._getHeights.call(context);
+		expect(actual).to.eql(heights);
+	});
+});
+
+describe('#_resolveOptions', function() {
+	it('set $el property', function() {
+		var context = {
+			options: {
+				$el: $el,
+			}
+		};
+		proto._resolveOptions.call(context);
+		expect(context.$el).to.eql($el);
+	});
+});
+
+describe('#_defineTarget', function() {
+	it('set $target property from option if options is jquery object', function() {
+		var $target = $el.find('.js-equalize-col');
+		var context = {
+			options: {
+				target: $target,
+			}
+		};
+		proto._defineTarget.call(context);
+		expect(context.$target).to.eql($target);
+	});
+
+	it('set $target property as jquery object from option if option is string', function() {
+		var $target = $el.find('.js-equalize-col');
+		var context = {
+			$el: $el,
+			options: {
+				target: '.js-equalize-col'
+			}
+		};
+		proto._defineTarget.call(context);
+		expect(context.$target).to.eql($target);
+	});
+});
+
+describe('#_isAllowedWidth', function() {
+	it('if window width is smaller than max breakpoint and bigger than min, return true', function() {
+		var context = {
+			$window: {
+				width: function() {
+					return 500
+				}
+			},
+			options: {
+				breakpoint: {
+					min: 400,
+					max: 600
+				}
+			}
+		};
+		var actual = proto._isAllowedWidth.call(context);
+		expect(actual).to.eql(true);
+	});
+});
+
+// Functional
+
+describe('jquery equalize', function() {
+	it('set equal heights', function() {
+		$el.equalize();
+		var height = $target.first().outerHeight();
+		var isEqual = [].every.call($target, function(el) {
+			return height == $(el).outerHeight();
+		});
+		expect(isEqual).to.eql(true);
 	});
 });
