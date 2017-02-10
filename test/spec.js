@@ -29,7 +29,7 @@ beforeEach(function() {
 		var height = Math.floor((Math.random() * 900) + 1);
 		heights.push(height);
 		var $targetSingle = $('<div>', {
-			'class': 'js-equalize-col'
+			'class': 'js-equalize-target'
 		}).outerHeight(height);
 		$el.append($targetSingle);
 		$target = $target.add($targetSingle);
