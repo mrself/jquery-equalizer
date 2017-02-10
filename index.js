@@ -29,7 +29,7 @@ function Plugin() {
 Plugin.prototype = {
 	constructor: Plugin,
 	defaults: {
-		target: '.js-equalize-col',
+		target: '.js-equalize-target',
 		breakpoint: {
 			max: 0,
 			min: 0
