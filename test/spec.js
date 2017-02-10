@@ -269,14 +269,17 @@ describe('#_isAllowedWidth', function() {
 	});
 });
 
-// Functional
-
-describe('jquery equalize', function() {
-	it('set equal heights', function() {
-		$el.equalize();
-		var height = $target.first().outerHeight();
+describe('#equalize', function() {
+	it('set height from #_defineHeight', function() {
+		var context = {
+			options: {callback: function() {}},
+			_getHeights: sn.stub(),
+			_defineHeight: sn.stub().returns(300),
+			$target: $target
+		};
+		proto.equalize.call(context);
 		var isEqual = [].every.call($target, function(el) {
-			return height == $(el).outerHeight();
+			return 300 == $(el).outerHeight();
 		});
 		expect(isEqual).to.eql(true);
 	});
