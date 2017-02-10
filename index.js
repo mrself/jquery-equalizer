@@ -102,7 +102,7 @@ Plugin.prototype = {
 
 	equalize: function() {
 		var heights = this._getHeights();
-		this.$target.outerHeight(this._defineHeight(heights));
+		this.$target.height(this._defineHeight(heights));
 		this.options.callback();
 	},
 
