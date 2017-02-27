@@ -43,18 +43,14 @@ afterEach(function() {
 });
 
 describe('.instance', function() {
-	describe('arguments length', function() {
-		it('if 1, get instance', function() {
-			var inst = new Plugin;
-			$.data($el[0], 'plugin_instance', inst);
-			expect(Plugin.instance($el[0])).to.eql(inst);
-		});
-
-		it('if 2, set instance', function() {
-			var inst = new Plugin;
-			Plugin.instance($el[0], inst)
-			expect(Plugin.instance($el[0])).to.eql(inst);
-		});
+	it.only('save instance to element dataset', function() {
+		var $el = $('<div>');
+		var inst = {
+			options: {target: 'target'},
+			$el: $el
+		};
+		Plugin.instance(inst);
+		expect($el.data('plugin_instance_target')).to.eql(inst);
 	});
 });
 

@@ -138,7 +138,7 @@ Plugin._name = 'equalizer';
 Plugin.init = function(options) {
 	var inst = new this;
 	inst.setOptions(options);
-	this.instance(options.$el[0], inst);
+	this.instance(inst);
 	inst.init();
 };
 
@@ -172,10 +172,7 @@ Plugin.jqueryInit = function(options) {
  * @param  {HTMLElement} el Html element
  */
 Plugin.jqueryConstructor = function(options, index, el) {
-	var inst = Plugin.instance(el);
-	if (inst) inst.run();
-	else
-		Plugin.init(Plugin.resolveOptions($(el), options));
+	Plugin.init(Plugin.resolveOptions($(el), options));
 };
 
 /**
@@ -184,11 +181,9 @@ Plugin.jqueryConstructor = function(options, index, el) {
  * @param  {Plugin} inst
  * @return {(Plugin|void)}
  */
-Plugin.instance = function(el, inst) {
-	var dataName = this._name + '_instance';
-	if (inst)
-		$.data(el, dataName, inst);
-	else return $.data(el, dataName);
+Plugin.instance = function(inst) {
+	var dataName = this._name + '_instance_' + inst.options.target;
+	$.data(inst.$el[0], dataName, inst);
 };
 
 /**
