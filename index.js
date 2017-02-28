@@ -138,8 +138,8 @@ Plugin._name = 'equalizer';
 Plugin.init = function(options) {
 	var inst = new this;
 	inst.setOptions(options);
-	this.instance(inst);
 	inst.init();
+	this.instance(inst);
 };
 
 Plugin.boot = function() {
