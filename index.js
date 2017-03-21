@@ -57,7 +57,7 @@ Plugin.prototype = {
 	},
 
 	reset: function() {
-		this.$target.css('height', null);
+		this.$target.css('height', '');
 	},
 
 	/**
