@@ -45,8 +45,17 @@ Plugin.prototype = {
 		this._defineExtremeHeight();
 		this._defineTarget();
 		this.$window = $(window);
-		this.$window.on('resize', this.run.bind(this));
+		this.defineEvents();
 		this.run();
+	},
+
+	defineEvents: function() {
+		var flag;
+		var self = this;
+		this.$window.on('resize', function() {
+			clearTimeout(flag);
+			flag = setTimeout(self.run.bind(self), self.options.resizeTimeout);
+		});
 	},
 
 	run: function() {
@@ -130,7 +139,8 @@ Plugin.prototype = {
 Plugin.options = {
 	// Selector which will be used by plugin as default for target at init
 	autoSelector: '.js-equalize-auto',
-	pluginName: 'equalize'
+	pluginName: 'equalize',
+	resizeTimeout: 300
 };
 
 Plugin._name = 'equalizer';
