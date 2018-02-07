@@ -45,8 +45,17 @@ Plugin.prototype = {
 		this._defineExtremeHeight();
 		this._defineTarget();
 		this.$window = $(window);
-		this.$window.on('resize', this.run.bind(this));
+		this.defineEvents();
 		this.run();
+	},
+
+	defineEvents: function() {
+		var flag;
+		var self = this;
+		this.$window.on('resize', function() {
+			clearTimeout(flag);
+			flag = setTimeout(self.run.bind(self), self.options.resizeTimeout);
+		});
 	},
 
 	run: function() {
@@ -57,7 +66,7 @@ Plugin.prototype = {
 	},
 
 	reset: function() {
-		this.$target.css('height', null);
+		this.$target.css('height', '');
 	},
 
 	/**
@@ -130,7 +139,8 @@ Plugin.prototype = {
 Plugin.options = {
 	// Selector which will be used by plugin as default for target at init
 	autoSelector: '.js-equalize-auto',
-	pluginName: 'equalize'
+	pluginName: 'equalize',
+	resizeTimeout: 300
 };
 
 Plugin._name = 'equalizer';
@@ -138,8 +148,8 @@ Plugin._name = 'equalizer';
 Plugin.init = function(options) {
 	var inst = new this;
 	inst.setOptions(options);
-	this.instance(options.$el[0], inst);
 	inst.init();
+	this.instance(inst);
 };
 
 Plugin.boot = function() {
@@ -172,10 +182,7 @@ Plugin.jqueryInit = function(options) {
  * @param  {HTMLElement} el Html element
  */
 Plugin.jqueryConstructor = function(options, index, el) {
-	var inst = Plugin.instance(el);
-	if (inst) inst.run();
-	else
-		Plugin.init(Plugin.resolveOptions($(el), options));
+	Plugin.init(Plugin.resolveOptions($(el), options));
 };
 
 /**
@@ -184,11 +191,9 @@ Plugin.jqueryConstructor = function(options, index, el) {
  * @param  {Plugin} inst
  * @return {(Plugin|void)}
  */
-Plugin.instance = function(el, inst) {
-	var dataName = this._name + '_instance';
-	if (inst)
-		$.data(el, dataName, inst);
-	else return $.data(el, dataName);
+Plugin.instance = function(inst) {
+	var dataName = this._name + '_instance_' + inst.options.target;
+	$.data(inst.$el[0], dataName, inst);
 };
 
 /**
