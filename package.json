@@ -30,6 +30,6 @@
     "watchify": "^3.4.0"
   },
   "dependencies": {
-    "img-load": "git+https://github.com/mrself/jquery-img-load.git#v1.0.0"
+    "img-load": "github:mrself/jquery-img-load#v1.0.1"
   }
 }
