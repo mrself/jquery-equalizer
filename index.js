@@ -113,6 +113,7 @@ Plugin.prototype = {
 		var heights = this._getHeights();
 		this.$target.height(this._defineHeight(heights));
 		this.options.callback();
+		this.$el.trigger('equalizer/done');
 	},
 
 	_defineHeight: function(heights) {
